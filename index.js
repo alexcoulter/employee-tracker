@@ -26,7 +26,7 @@ connection.connect((err) => {
 // Makes a call to the server and pulls information for employee roles and adds them to the 'RolesArray'
 function updateRolesArray() {
   rolesArray = [];
-  var query = `SELECT DISTINCT title FROM role ORDER BY title`;
+  var query = `SELECT DISTINCT title FROM role`;
   connection.query(query, function (err, res) {
     if (err) throw err;
 
@@ -45,7 +45,6 @@ function updateEmployeesArray() {
     if (err) throw err;
 
     res.forEach(element => {
-
       employeesArray.push(element.Employee);
     });
     updateDeptArray();
@@ -183,7 +182,7 @@ function addRole() {
 
         var query = `select id from department where dept_name = ?`;
         connection.query(query, [res.dept], function (err, resp) {
-          console.log(resp[0].id + "ID");
+          // console.log(resp[0].id + "ID");
           department_id = resp[0].id;
 
           resolve();
@@ -195,9 +194,9 @@ function addRole() {
       values ("${res.role}", ${res.salary}, ${department_id});`;
         connection.query(query, function (err, data) {
           if (err) throw err;
-          console.log(`-----------------------------------------`);
-          console.log(`${res.role} added as a new role!`);
-          console.log(`-----------------------------------------`);
+          console.log(chalk.green(`-----------------------------------------`));
+          console.log(chalk.green(`${res.role} added as a new role!`));
+          console.log(chalk.green(`-----------------------------------------`));
           updateRolesArray();
 
         });
@@ -276,8 +275,8 @@ async function addEmployee() {
   catch (err) {
     console.log(err);
   }
-}
 
+  
 //waits to get database values and adds new employee
 function InsertEmployee(a, b) {
   var query = `insert into employees (first_name, last_name, role_id, manager_id)
@@ -285,12 +284,14 @@ function InsertEmployee(a, b) {
 
   connection.query(query, function (err) {
     if (err) throw err;
-    console.log(`-----------------------------------------`);
-    console.log(`${firstName} ${lastName} added as a new employee!`);
-    console.log(`-----------------------------------------`);
+    console.log(chalk.green(`-----------------------------------------------------------`));
+    console.log(chalk.green(`${firstName} ${lastName} added as a new employee!`));
+    console.log(chalk.green(`-----------------------------------------------------------`));
     updateRolesArray();
   });
 }
+}
+
 
 
 //Removes a specified role from the 'roles' table
@@ -309,9 +310,9 @@ function removeRole() {
     .then(function (res) {
       var query = `delete from role where title = ?`;
       connection.query(query, [res.delete_Role], function (err, results) {
-        console.log("-----------------------------------------------");
-        console.log(`deleted ${res.delete_Role} from roles!`);
-        console.log("-----------------------------------------------");
+        console.log(chalk.green(`---------------------------------------------------`));
+        console.log(chalk.green(`deleted ${res.delete_Role} from roles!`));
+        console.log(chalk.green(`---------------------------------------------------`));
         updateRolesArray();
       });
     });
@@ -339,9 +340,9 @@ function removeEmployee() {
 
       var query = `delete from employees where  first_name = ? and last_name = ?`;
       connection.query(query, [first, last], function (err, results) {
-        console.log("-----------------------------------------------");
-        console.log(`deleted ${res.delete_Emp} from employees!`);
-        console.log("-----------------------------------------------");
+        console.log(chalk.green(`---------------------------------------------------`));
+        console.log(chalk.green(`deleted ${res.delete_Emp} from employees!`));
+        console.log(chalk.green(`---------------------------------------------------`));
         updateRolesArray();
       });
 
@@ -380,7 +381,6 @@ function updateRole() {
           first = splitName[0];
           last = splitName[1];
           id = data[0].id;
-
           resolve();
         });
       });
@@ -390,9 +390,9 @@ function updateRole() {
         var query = `UPDATE employees SET role_id = ? WHERE first_name = ? AND last_name = ?`;
         connection.query(query, [id, first, last], function (err, data) {
           if (err) throw err;
-          console.log("---------------------------------------------------------------------")
-          console.log(`${first} ${last}'s role has been updated to: ${res.role_name}`);
-          console.log("---------------------------------------------------------------------")
+          console.log(chalk.green(`-----------------------------------------------------------------------`));
+          console.log(chalk.green(`${first} ${last}'s role has been updated to: ${res.role_name}`));
+          console.log(chalk.green(`-----------------------------------------------------------------------`));
           updateRolesArray();
         });
       });
@@ -421,7 +421,6 @@ function updateManager() {
       }
     ])
     .then(function (res) {
-      console.log(res.employee_name + res.manager_name);
 
       const promise1 = new Promise(function (resolve, reject) {
         const splitEmployee = res.employee_name.split(" ");
@@ -449,9 +448,9 @@ function updateManager() {
         var query = `UPDATE employees SET manager_id = ? WHERE first_name = ? AND last_name = ?`;
         connection.query(query, [managerId, first, last], function (err, data) {
           if (err) throw err;
-          console.log("---------------------------------------------------------------------")
-          console.log(`${first} ${last}'s  Manager been updated to: ${res.manager_name}`);
-          console.log("---------------------------------------------------------------------")
+          console.log(chalk.green("---------------------------------------------------------------------"));
+          console.log(chalk.green(`${first} ${last}'s  Manager been updated to: ${res.manager_name}`));
+          console.log(chalk.green("---------------------------------------------------------------------"));
           updateRolesArray();
         });
       });
@@ -470,15 +469,14 @@ function budget() {
       },
     ])
     .then(function (res) {
-      console.log(res.dept);
       var query = `select  SUM(salary) AS budget
   FROM employees e LEFT JOIN employees m ON m.id = e.manager_id LEFT JOIN role ON e.role_id = role.id 
   LEFT JOIN department ON dept_id = department.id WHERE dept_name = ?`;
       connection.query(query, [res.dept], function (err, data) {
         if (err) throw err;
-        console.log("---------------------------------------------------------------------")
-        console.log(`The total utilized budget of the ${res.dept} department is ${data[0].budget}`);
-        console.log("---------------------------------------------------------------------")
+        console.log(chalk.green("---------------------------------------------------------------------"));
+        console.log(chalk.green(`The total utilized budget of the ${res.dept} department is ${data[0].budget}`));
+        console.log(chalk.green("---------------------------------------------------------------------"));
         updateRolesArray();
       });
     });
