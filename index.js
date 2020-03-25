@@ -1,5 +1,6 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
+const chalk = require("chalk");
 const cTable = require('console.table');
 var rolesArray, employeesArray, deptArray, manager, id;
 
@@ -159,11 +160,13 @@ function addRole() {
         type: "input",
         message: "What role would you like to add?",
         name: "role",
+        validate: onlyLetters
       },
       {
         type: "input",
         message: "What is the salary for this role?",
         name: "salary",
+        validate: onlyNumbers
       },
       {
         type: "list",
@@ -213,11 +216,13 @@ async function addEmployee() {
           type: "input",
           message: "What is the new employee's first name?",
           name: "firstName",
+          validate: onlyLetters
         },
         {
           type: "input",
           message: "What is the new employee's last name?",
           name: "lastName",
+          validate: onlyLetters
         },
         {
           type: "list",
@@ -473,6 +478,22 @@ function budget() {
 
 //Clean up add functions using promises
 // functionality to add a department
+//only add "None" to employees array for manager selection
+//validation
 
 // * You may wish to have a separate file containing functions for performing specific SQL queries you'll need to use. Could a constructor function or a class be helpful for organizing these?
 
+function onlyLetters(name) {
+  var pattern = new RegExp(/[~`!0123456789#$%\^&@*+=\\[\]\\';,./{}|\\":<>\?]/); //unacceptable characters
+    if (pattern.test(name)) {
+        return chalk.red("please input letters only");
+    }
+    return true;
+}
+
+function onlyNumbers(name) {
+  if(isNaN(name)) {
+    return chalk.red("please input a number");
+  }
+  return true;
+}
