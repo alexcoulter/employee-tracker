@@ -16,6 +16,9 @@ const connection = mysql.createConnection({
 connection.connect((err) => {
   if (err) throw err;
   console.log(`connected as id ${connection.threadId}\n`);
+  console.log(chalk.green("---------------------------------"));
+  console.log(chalk.green("Welcome to the Employee Tracker!"));
+  console.log(chalk.green("---------------------------------"));
   updateRolesArray();
 });
 
@@ -36,7 +39,7 @@ function updateRolesArray() {
 
 // Makes a call to the server and pulls the names of all employees and adds them to the 'EmployeesArray'
 function updateEmployeesArray() {
-  employeesArray = ["None"];
+  employeesArray = [];
   var query = `select  CONCAT_WS(" ",first_name,last_name) AS Employee FROM employees;`;
   connection.query(query, function (err, res) {
     if (err) throw err;
@@ -56,9 +59,7 @@ function updateDeptArray() {
     if (err) throw err;
 
     res.forEach(element => {
-
       deptArray.push(element.dept_name);
-
     });
     start();
   });
@@ -73,7 +74,7 @@ function start() {
     .prompt([
       {
         type: "list",
-        message: "What would you like to do?",
+        message: chalk.yellowBright("What would you like to do?"),
         choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager", "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager", "View All Roles", "Add Role", "Remove Role", "View the total utilized budget of a department", "Exit"],
         name: "action",
       }
@@ -209,6 +210,7 @@ function addRole() {
 //adds a new employee to the 'employees' table and inserts values for first and last name, role, and manager 
 async function addEmployee() {
   try {
+    employeesArray.unshift("None");
 
     inquirer
       .prompt([
@@ -400,7 +402,7 @@ function updateRole() {
 
 //Updates an employee's manager to a new person
 function updateManager() {
-  employeesArray.shift();
+  var managerArray = ["None",...employeesArray];
   var first, last, managerId;
 
   inquirer
@@ -415,29 +417,35 @@ function updateManager() {
         type: "list",
         message: "Who is this employee's new manager?",
         name: "manager_name",
-        choices: employeesArray,
+        choices: managerArray,
       }
     ])
     .then(function (res) {
       console.log(res.employee_name + res.manager_name);
 
       const promise1 = new Promise(function (resolve, reject) {
-        const splitManager = res.manager_name.split(" ");
         const splitEmployee = res.employee_name.split(" ");
         first = splitEmployee[0];
         last = splitEmployee[1];
+        if (res.manager_name === "None") {
+          managerId = 0;
+          resolve();
+        }
+        else {
+        const splitManager = res.manager_name.split(" ");
+        
 
         var query = `select id from employees WHERE first_name = ? AND last_name = ?`;
         connection.query(query, [splitManager[0], splitManager[1]], function (err, data) {
           if (err) throw err;
           managerId = data[0].id;
-          // console.log(managerId);
           resolve();
         });
+      }
+     
       });
 
       promise1.then(function () {
-
         var query = `UPDATE employees SET manager_id = ? WHERE first_name = ? AND last_name = ?`;
         connection.query(query, [managerId, first, last], function (err, data) {
           if (err) throw err;
@@ -453,47 +461,48 @@ function updateManager() {
 
 function budget() {
   inquirer
-  .prompt([
-    {
-      type: "list",
-      message: "What Department do you want the utilized budget for?",
-      name: "dept",
-      choices: deptArray,
-    },
-  ])
-    .then(function(res) {
+    .prompt([
+      {
+        type: "list",
+        message: "What Department do you want the utilized budget for?",
+        name: "dept",
+        choices: deptArray,
+      },
+    ])
+    .then(function (res) {
       console.log(res.dept);
-  var query = `select  SUM(salary) AS budget
+      var query = `select  SUM(salary) AS budget
   FROM employees e LEFT JOIN employees m ON m.id = e.manager_id LEFT JOIN role ON e.role_id = role.id 
   LEFT JOIN department ON dept_id = department.id WHERE dept_name = ?`;
-        connection.query(query, [res.dept], function (err, data) {
-          if (err) throw err;
-          console.log("---------------------------------------------------------------------")
-          console.log(`The total utilized budget of the ${res.dept} department is ${data[0].budget}`);
-          console.log("---------------------------------------------------------------------")
-          updateRolesArray();
-        });
+      connection.query(query, [res.dept], function (err, data) {
+        if (err) throw err;
+        console.log("---------------------------------------------------------------------")
+        console.log(`The total utilized budget of the ${res.dept} department is ${data[0].budget}`);
+        console.log("---------------------------------------------------------------------")
+        updateRolesArray();
       });
+    });
 }
 
 //Clean up add functions using promises
 // functionality to add a department
-//only add "None" to employees array for manager selection
-//validation
+
 
 // * You may wish to have a separate file containing functions for performing specific SQL queries you'll need to use. Could a constructor function or a class be helpful for organizing these?
 
 function onlyLetters(name) {
   var pattern = new RegExp(/[~`!0123456789#$%\^&@*+=\\[\]\\';,./{}|\\":<>\?]/); //unacceptable characters
-    if (pattern.test(name)) {
-        return chalk.red("please input letters only");
-    }
-    return true;
+  if (pattern.test(name)) {
+    return chalk.red("please input letters only");
+  }
+  return true;
 }
 
 function onlyNumbers(name) {
-  if(isNaN(name)) {
+  if (isNaN(name)) {
     return chalk.red("please input a number");
   }
   return true;
 }
+
+
