@@ -25,7 +25,7 @@
  
 ## Usage  
 
-  *  scroll through the list of options on the command line using the 'up' and 'down' arrow keys and select what you want to do. Answer any questions asked and press 'enter' to update the employee database.  When you are done, navigate to the option that says 'Exit' and press 'enter'.
+  *  scroll through the list of options on the command line using the 'up' and 'down' arrow keys and select what you want to do. Answer any questions asked and press 'enter' to update the employee database.  If a red error message pops up, try typing your answer again using the selected criteria.  When you are done, navigate to the option that says 'Exit' and press 'enter' to close the application and the database connection.
 
   * Usage demo:
 
